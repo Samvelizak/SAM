@@ -1,0 +1,423 @@
+#ANGULAR
+# HTML CODE FOR THE REGISTRATION PAGE
+<app-navbar></app-navbar>
+<html>
+<head>
+    <title>Register Page</title>
+</head>
+<body>
+    <form #f="ngForm" novalidate (ngSubmit)="f.form.valid&&onsubmit()">
+        <h1>REGISTER</h1>
+        <label>USERNAME</label>
+        <input type="text" name="name" id="" [(ngModel)]="formdata.name" #name="ngModel" required>
+        <span class="text-danger"  *ngIf="this.submit&&name.errors?.['required']">
+            Name is required.
+        </span>
+        <label>EMAIL</label>
+        <input type="text" name="email" id="" [(ngModel)]="formdata.email" #email="ngModel" required>
+        <span class="text-danger"  *ngIf="this.submit&&email.errors?.['required']">
+            Email is required.
+        </span>
+        <label>PASSWORD</label>
+        <input type="text" name="password" id="" [(ngModel)]="formdata.password" #password="ngModel" required minlength="8">
+        <span class="text-danger"  *ngIf="this.submit&&password.errors?.['required']">
+            password is required .
+        </span>
+        <span class="text-danger"  *ngIf="this.submit&&password.errors?.['minlength']">
+            password is required minlength 8.
+        </span>
+        <div class="form-group">
+            <span class="text-danger "*ngIf="this.errorMessage">
+                <p [innerText]="this.errorMessage"></p>
+            </span>
+        </div>
+        <div  class="text-center" *ngIf="this.loading">
+            <div class="spinner-border text-primary " role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <input type="submit" class="btn btn-login float-right"  value="Register" (click)="submit=true" [disabled]="this.loading">
+        <div class="form-group">
+            Already have account ? Please  <a href="javascript:void(0);" routerLink="/login"> Login</a>
+        </div>
+
+        
+        
+    </form>
+</body>
+</html>
+
+# CSS CODE FOR THE REGISTRATION PAGE
+*{
+    padding: none;
+    margin: none;
+    box-sizing: border-box ;
+    cursor: pointer;
+}
+body{
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:linear-gradient(lightblue,pink);
+    background-size: cover;
+    background-position: center center;
+}
+form{
+    height: 39rem;
+    width: 28rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,.37);
+    background: rgba(255,255,255,0.06);
+    border-radius: 30px;
+    border-left: 1px solid rgba(255,255,255,0.3);
+    border-right: 1px solid rgba(255,255,255,0.3);
+
+}
+h1{
+    text-align: center;
+    font-size: 50px;
+    color: white;
+    opacity: 0.7;
+    text-shadow: 2px 2px 4px black;
+    letter-spacing: 3px;
+    margin-bottom: 5%;
+}
+label{
+    font-size: 20px;
+    color: white;
+    margin-left:10%;
+    opacity: .8;
+    text-shadow: 2px 2px 4px black;
+}
+input{
+    width: 80%;
+    margin: 5% auto;
+    margin-bottom:8%;
+    background: transparent;
+    border: none;
+    outline: none;
+    background: transparent;
+    border-bottom: 1px solid white;
+    opacity: 0.8;
+    color:  white;
+}
+button{
+    width:80%;
+    margin: 3% auto;
+    background: transparent;
+    font-size:  20px;
+    color: white;
+    background: rgba(255,255,255,.06);
+    padding: 10px 30px;
+    outline: none;
+    border: none;
+    border-radius: 20px;
+    text-shadow: 2px 2px 4px black;
+    box-shadow: 3px 3px 5px ,rgba(31,38,135,.37);
+    border-left: 1px solid rgba(255,255,255,.3);
+    border-top: 1px solid rgba(255,255,255,.3); 
+    opacity: 0.8;
+}
+span{
+    margin-left: 12%;
+    margin-top: -7%;
+    display: flex;
+}
+.form-group{
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.8;
+}
+.form-group a{
+    font-size: 100%;
+}
+# TS CODE FOR THE REGISTRATION PAGE
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../_services/auth.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-register',
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css']
+})
+export class RegisterComponent implements OnInit {
+  formdata ={name:"",email:"",password:""};
+  submit=false
+  loading=false;
+  errorMessage=""
+  constructor(private auth:AuthService){ }
+  ngOnInit(): void {
+    this.auth.canAuthenticate();
+
+      
+  }
+  onsubmit(){
+    
+    this.loading=true;
+    this.auth.register(this.formdata.name,this.formdata.email,this.formdata.password)
+    .subscribe({
+      next:data=>{
+        this.auth.storeToken(data.idToken);
+        console.log('Registered idtoken is'+data.idToken);
+        this.auth.canAuthenticate();
+
+      },
+      error:data=>{
+        if(data.error.error.message=="INVALID_MAIL"){
+          this.errorMessage="Invaild Email";
+        }else if (data.error.error.message=="EMAIL_EXISTS"){
+          this.errorMessage=" Already Email Exists!";
+          
+        }else{
+          this.errorMessage="Unknown error occured when creating this account!";
+          
+        }
+      }
+      
+    }).add(()=>{
+      this.loading=false;
+      console.log('Registeration completed');
+    })
+    
+
+  }
+
+}
+
+
+
+
+# HTML CODE FOR THE HOME PAGE
+<app-navbar></app-navbar>
+<p><b>Welcome to Sales Forecasting Interface</b></p>
+
+# CSS CODE FOR HOME PAGE
+p{
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    
+    justify-content: center;
+    text-align: center;
+    color: blue;
+    font-size: 200%;
+    background-color: bisque;
+}
+
+# TS CODE FOR HOME PAGE
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent {
+
+}
+
+
+# HTML PAGE FOR THE LOGIN PAGE 
+<app-navbar></app-navbar>
+<html lang="en">
+<head>
+    <title>Login Page</title>
+</head>
+<body>
+    <form #f="ngForm" novalidate (ngSubmit)="f.form.valid&&onsubmit()">
+        <h1>LOGIN</h1>
+        <label>Email</label>
+        <input type="text" name="email" id="" placeholder="Email" [(ngModel)]="formdata.email" #email="ngModel" required>
+        <span class="text-danger"  *ngIf="this.submit&&email.errors?.['required']">
+            email is required.
+        </span>
+
+        <label>PASSWORD</label>
+        <input type="text" name="password" id="" placeholder="Password"[(ngModel)]="formdata.password" #password="ngModel" required>
+        <span class="text-danger"  *ngIf="this.submit&&password.errors?.['required']">
+            email is required.
+        </span>
+        <div  class="text-center" *ngIf="this.loading">
+            <div class="spinner-border text-primary " role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <input type="submit" class="btn btn-login float-right"  value="Login" (click)="submit=true" [disabled]="this.loading">
+        
+        <a style="color: white;" >FORGOT PASSWORD</a> 
+    
+        <p>Don't have an account      <a href="javascript:void(0);" routerLink="/register">Register</a></p>
+
+        
+    </form>
+</body>
+
+
+</html>
+
+
+# CSS CODE FOR THE LOGIN PAGE
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
+*{
+    margin:0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto Condensed', sans-serif;
+    cursor: pointer;
+}
+body{
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:linear-gradient(lightblue,pink);
+    background-size: cover;
+    background-position: center center;
+    
+    
+}
+form{
+    width: 25rem;
+    height:30rem;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,.37);
+    border-radius: 30px;
+    border-left: 1px solid rgba(255,255,255,0.3);
+    border-right: 1px solid rgba(255,255,255,0.3);
+    background:linear-gradient(lightblue,pink);
+}
+h1{
+    text-align: center;
+    font-size: 50px;
+    color: white;
+    text-shadow: 2px 2px 4px black;
+    letter-spacing: 3px;
+    margin-bottom: 5%;
+    opacity: 0.6;
+}
+label{
+    font-size: 20px;
+    color: white;
+    margin-left:10%;
+    opacity: .8;
+    text-shadow: 2px 2px 4px black;
+
+}
+input{
+    width:80%;
+    margin:5% auto;
+    margin-bottom:8%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: white;
+    border-bottom: 1px solid white;
+    opacity: 0.8;
+
+}
+
+a{
+    
+    font-size: 15px;
+    text-align: center;
+    opacity: 0.8;
+    
+}
+p{
+    text-align: center;
+    color: white;
+    opacity: 0.8;
+    
+    
+}
+p a{
+    color: darkblue;
+    font-size: 20px;
+    text-align: center;
+    opacity: 0.8;
+    
+    
+}
+span{
+    margin-left: 12%;
+    margin-top: -7%;
+    display: flex;
+}
+.btn-login{background: transparent; color:#fff; font-weight:600; }
+
+::placeholder{
+    color: red;
+    font-weight: 800;
+    opacity: 0.8;
+}
+
+
+#TS CODE FOR THE LOGIN PAGE
+
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../_services/auth.service';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit{
+  formdata={email:"",password:""};
+  submit=false;
+  loading=false;
+  errorMessage="";
+  constructor(private auth:AuthService) { }
+  ngOnInit(): void {
+    this.auth.canAuthenticate();
+      
+  }
+  onsubmit(){
+    this.loading=true;
+    this.auth.login(this.formdata.email,this.formdata.password)
+    .subscribe({
+      next:data=>{
+      this.auth.storeToken(data.idToken);
+      console.log('logged user token is'+data.idToken);
+      this.auth.canAuthenticate();
+      },
+      error:data=>{
+        if(data.error.error.message=="INVAILD_PASSWORD" || data.error.error.message=="INVAILD_EMAIL"){
+          this.errorMessage="Invaid Details";
+        } else{
+          this.errorMessage="Unknown Error!"
+        }
+        
+      } 
+    
+      
+
+      
+    }).add(()=>{
+      this.loading=false;
+      console.log('login process completed');
+    })
+    
+  }
+
+  
+
+
+
+}
+
+
+
+
+
+
+
