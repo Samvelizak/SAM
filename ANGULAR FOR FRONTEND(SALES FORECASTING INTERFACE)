@@ -416,6 +416,235 @@ export class LoginComponent implements OnInit{
 }
 
 
+# NAVBAR HTML CODE
+<nav>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <ul>
+      <ng-container *ngIf="this.Auth.isauth();then auth; else notauth">
+
+      </ng-container>
+      <ng-template #notauth>
+
+        <a href="javascript:void(0);" routerLink="/"><i class="fa fa-fw fa-home"></i>Home</a>
+        <li><a href="javascript:void(0);" routerLink="/login"><i class="fa fa-fw fa-user"></i>Login</a></li>
+        <li><a href="javascript:void(0);" routerLink="/register"><i class="fa fa-user-plus"></i>Register</a></li>
+      </ng-template>
+      <ng-template #auth>
+        <a href="javascript:void(0);" routerLink="/"><i class="fa fa-fw fa-home"></i>Home</a>
+        <li><a href="javascript:void(0);" routerLink="/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li><a href="javascript:void(0);" routerLink="/logout" (click)="logout()"><i class="fa fa-power-off"></i>logout</a></li>
+      </ng-template>
+    </ul>
+  </nav>
+
+
+
+#NAVBAR CSS CODE
+nav {
+    background-color: black
+  }
+  
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 2%;
+    display: flex;
+  }
+  
+  li {
+    margin: 0 10px;
+  }
+  
+  a {
+    margin: 0 10px;
+    color: #fff;
+    text-decoration: none;
+  }
+  
+
+
+#TS CODE FOR NAVBAR
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../_services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.css']
+})
+export class NavbarComponent implements OnInit{
+  constructor(public Auth:AuthService){ }
+  ngOnInit(): void {
+      
+  }
+  logout(){
+    this.Auth.removeToken();
+    this.Auth.homepage();
+  }
+
+
+}
+
+
+#HTML CODE FOR THE UPLOADE PAGE
+<app-navbar></app-navbar>
+<div class="container">
+  <h1>Upload CSV or Excel file</h1>
+  <form>
+    <label for="file-upload"></label>
+    <input
+      type="file"
+      id="file-upload"
+      accept=".csv,.xlsx,.xls"
+      placeholder="Choose a file"
+    >
+    <label for="periodicity">Periodicity:</label>
+    <input type="text" id="periodicity" name="periodicity" /><br /><br />
+    <label for="number">Number:</label>
+    <input type="text" id="number" name="number" /><br /><br />
+
+    <button type="submit" (click)="uploadFile()">Upload</button>
+  </form>
+</div>
+
+  <p class="warning" *ngIf="showWarning">
+    Please select a valid CSV or Excel file.
+  </p>
+  <div class="res">
+    <p><b>{{response}}</b></p>
+  </div>
+  
+   
+#CSS CODE FOR UPLOAD PAGE 
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+}
+
+label {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="file"] {
+  padding: 10px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button[type="submit"] {
+  background-color: #0066cc;
+  color: #fff;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.warning {
+  color: red;
+  font-size: 16px;
+  margin-top: 10px;
+}
+.res{
+  text-align: center;
+  justify-content: center;
+  color: blue;
+}
+
+
+*{
+  background-color: linear-gradient(lightblue,pink);
+}
+
+
+#TS CODE FOR UPLOAD PAGE 
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../_services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+
+
+
+@Component({
+  selector: 'app-upload',
+  templateUrl: './upload.component.html',
+  styleUrls: ['./upload.component.css']
+})
+export class UploadComponent  {
+  
+  
+ 
+  showWarning:boolean=false;
+  result: any;
+  downloadLink: string | null = null;
+  response: string = '';
+ 
+ 
+  
+  
+  
+
+  constructor(private http: HttpClient, private auth: AuthService, private fb: FormBuilder, private formBuilder: FormBuilder,private router: Router) { }
+  
+  uploadFile() {
+    const fileUpload = document.getElementById('file-upload') as HTMLInputElement;
+  
+    if (!fileUpload) {
+      return
+      ;
+    }
+  
+    const file = fileUpload.files?.[0]; 
+  
+    if (!file || (file.type !== 'text/csv' && file.type !== 'application/vnd.ms-excel' && file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+      this.showWarning = true;
+      return;
+      
+    }
+    
+  
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('periodicity', (document.getElementById('periodicity') as HTMLInputElement).value);
+    formData.append('number', (document.getElementById('number') as HTMLInputElement).value);
+    
+  
+    this.http.post('http://127.0.0.1:5000/upload', formData, { responseType: 'text' }).subscribe((response) => {
+      console.log(response);
+      this.response="The prediction has done; download the file!";
+      const blob = new Blob([response], { type: 'text/csv' });
+     
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'result.csv';
+      a.click();
+    
+});
+}
+}
+
+
+
+
 
 
 
